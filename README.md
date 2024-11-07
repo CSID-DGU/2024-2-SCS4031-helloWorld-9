@@ -1,6 +1,22 @@
 # 2024-2-SCS4031-helloWorld-9
 RAG를 활용한 보험 문서 챗봇 만들기 프로젝트
 
+# 개발환경 세팅
+Linux, MacOS
+```
+python3 -m venv myenv
+source myenv/bin/activate
+pip install -r requirement.txt
+python3 test.py # 실제 파일이름으로 변경
+```
+Windows
+```
+python -m venv myenv
+source myenv/bin/activate
+pip install -r requirement.txt
+python3 test.py # 실제 파일이름으로 변경
+```
+
 # GitHub Role
 다음과 같은 Convetion을 따릅니다.
 
