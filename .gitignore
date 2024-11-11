@@ -2,3 +2,4 @@
 myenv
 vectorDB/*
 data/*
+__pycache__
