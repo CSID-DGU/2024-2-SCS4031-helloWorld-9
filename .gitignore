@@ -3,4 +3,4 @@ myenv
 vectorDB/*
 data/*
 __pycache__
-.pdf
+*.pdf
