@@ -42,7 +42,10 @@ cd backend\test\rag_metadata_test
 python rag_docstore_meta_test.py
 
 ```
-
-
-
-
+# 디렉토리 구조
+backend
+ | data
+ | src
+ | vectorDB
+ | .env
+ | requirements.txt
