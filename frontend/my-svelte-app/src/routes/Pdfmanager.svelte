@@ -1,100 +1,150 @@
 <script>
   import { onMount } from 'svelte';
-  import { pdfContents, loadedFiles, statusMessage } from '../store.js';
+  import { Filemanager } from "wx-svelte-filemanager";
+  import { Willow } from "wx-svelte-filemanager";
   import * as pdfjsLib from 'pdfjs-dist/build/pdf';
-
-  onMount(() => {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
-  });
-
-  async function processPdf(files) {
-    statusMessage.set('파일을 처리하는 중입니다...');
-
-    for (const file of files) {
-      const fileReader = new FileReader();
-      fileReader.onload = async (event) => {
-        const fileName = file.name;
-        const pdfData = event.target.result;
-
-        if (!pdfContents[fileName]) {
-          try {
-            const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-            let content = '';
-
-            for (let i = 0; i < pdf.numPages; i++) {
-              const page = await pdf.getPage(i + 1);
-              const textContent = await page.getTextContent();
-              content += textContent.items.map(item => item.str).join(' ') + '\n';
-            }
-
-            pdfContents.update(contents => ({ ...contents, [fileName]: { content, filename: fileName } }));
-            loadedFiles.update(files => [...files, fileName]);
-            statusMessage.set(`성공적으로 처리된 파일: ${fileName}`);
-          } catch (error) {
-            statusMessage.set(`Error processing ${fileName}: ${error.message}`);
-          }
-        } else {
-          statusMessage.set('이미 업로드된 파일입니다.');
-        }
+  import { fileManagerState, pdfContents, driveInfo, statusMessage } from '../store.js';
+  
+  let api;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
+  
+  // 파일 매니저 초기화
+  function init(fileManagerApi) {
+    api = fileManagerApi;
+    
+    // 컨텍스트 메뉴 커스터마이징
+    api.intercept("context-menu", (action) => {
+      const defaultMenu = action.menu;
+      defaultMenu.push({
+        id: "upload-pdf",
+        text: "PDF 업로드",
+        icon: "wxi-file-upload"
+      });
+      return defaultMenu;
+    });
+  
+    // 파일 업로드 처리
+    api.on("upload-pdf", async ({ id: targetFolder }) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      input.accept = '.pdf';
+      
+      input.onchange = async (event) => {
+        const files = event.target.files;
+        await processPdfFiles(files, targetFolder);
       };
-      fileReader.readAsArrayBuffer(file);
+      
+      input.click();
+    });
+  }
+  
+  // PDF 파일 처리
+  async function processPdfFiles(files, targetFolder) {
+    statusMessage.set('파일을 처리하는 중입니다...');
+  
+    for (const file of files) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let content = '';
+  
+        for (let i = 0; i < pdf.numPages; i++) {
+          const page = await pdf.getPage(i + 1);
+          const textContent = await page.getTextContent();
+          content += textContent.items.map(item => item.str).join(' ') + '\n';
+        }
+  
+        // 파일 매니저에 파일 추가
+        const fileId = `${targetFolder}/${file.name}`;
+        api.exec("provide-data", {
+          parent: targetFolder,
+          data: [{
+            id: fileId,
+            type: "file",
+            size: file.size,
+            date: new Date(),
+            ext: "pdf"
+          }]
+        });
+  
+        // PDF 내용 저장
+        pdfContents.update(contents => ({
+          ...contents,
+          [fileId]: { content, filename: file.name }
+        }));
+  
+        // 드라이브 정보 업데이트
+        driveInfo.update(info => ({
+          ...info,
+          used: info.used + file.size
+        }));
+  
+        statusMessage.set(`${file.name} 파일이 성공적으로 업로드되었습니다.`);
+      } catch (error) {
+        statusMessage.set(`Error processing ${file.name}: ${error.message}`);
+      }
     }
   }
-
-  function removePdf(filename) {
-    pdfContents.update(contents => {
-      const updatedContents = { ...contents };
-      delete updatedContents[filename];
-      return updatedContents;
-    });
-
-    loadedFiles.update(files => files.filter(file => file !== filename));
-    statusMessage.set(`${filename} 파일이 삭제되었습니다.`);
+  
+  // 파일 매니저 상태 변경 시 store 업데이트
+  function handleStateChange() {
+    if (api) {
+      const state = api.getState();
+      fileManagerState.set({
+        structure: api.serialize(),
+        activePanel: state.activePanel,
+        mode: state.mode,
+        currentPath: state.path
+      });
+    }
   }
-</script>
-
-<div class="card">
-  <h2>PDF 파일 관리</h2>
-  <input type="file" multiple on:change="{(event) => processPdf(event.target.files)}" />
-  <p class="status">{$statusMessage}</p>
-
-  <h3>로드된 파일 목록</h3>
-  <ul>
-    {#each $loadedFiles as file}
-      <li>
-        {file} 
-        <button class="button-secondary" on:click="{() => removePdf(file)}">삭제</button>
-      </li>
-    {/each}
-  </ul>
-</div>
-
-<style>
-  .card {
-    background-color: #fff;
-    border-radius: 8px;
-    border: 2px solid #d3d3d3;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-
-  .button-secondary {
-    background-color: #6c757d;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .button-secondary:hover {
-    background-color: #5a6268;
-  }
-
-  .status {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #666;
-  }
-</style>
+  
+  // 컴포넌트 마운트 시 저장된 상태 복원
+  onMount(() => {
+    let state;
+    fileManagerState.subscribe(value => {
+      state = value;
+    })();
+  
+    if (state.structure.length > 1) {
+      api.exec("provide-data", {
+        parent: "/",
+        data: state.structure
+      });
+    }
+  });
+  </script>
+  
+  <div class="file-manager-container">
+    <Willow>
+      <Filemanager
+        {init}
+        mode="cards"
+        icons="simple"
+        on:change={handleStateChange}
+        drive={$driveInfo}
+      />
+    </Willow>
+    
+    <div class="status-message">
+      {$statusMessage}
+    </div>
+  </div>
+  
+  <style>
+    .file-manager-container {
+      width: 100%;
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+    }
+  
+    .status-message {
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
