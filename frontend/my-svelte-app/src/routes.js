@@ -1,4 +1,4 @@
-import PdfManager from './routes/PdfManager.svelte';
+import PdfManager from './routes/Pdfmanager.svelte';
 import Chatbot from './routes/Chatbot.svelte';
 
 export default {
