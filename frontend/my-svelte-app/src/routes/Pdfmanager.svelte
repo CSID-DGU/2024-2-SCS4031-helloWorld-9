@@ -7,6 +7,8 @@
   
   let api;
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
+  const server = "https://some-backend-url";
+  let rawData = [];
   
   // 파일 매니저 초기화
   function init(fileManagerApi) {
@@ -37,6 +39,46 @@
       
       input.click();
     });
+  }
+  
+  function loadData(ev) {
+    const id = ev.detail.id;
+    statusMessage.set('파일 데이터를 불러오는 중입니다...');
+
+    fetch(server + "/files?id=" + encodeURIComponent(id))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        api.exec("provide-data", { data, parent: id });
+        statusMessage.set('파일 데이터를 성공적으로 불러왔습니다.');
+      })
+      .catch((error) => {
+        statusMessage.set(`오류 발생: ${error.message}`);
+      });
+  }
+
+  // 초기 데이터 로드
+  $: {
+    statusMessage.set('초기 파일 데이터를 불러오는 중입니다...');
+    
+    fetch(server + "/files")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`서버 오류: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        rawData = data;
+        statusMessage.set('초기 데이터를 성공적으로 불러왔습니다.');
+      })
+      .catch((error) => {
+        statusMessage.set(`오류 발생: ${error.message}`);
+      });
   }
   
   // PDF 파일 처리
@@ -84,6 +126,7 @@
       } catch (error) {
         statusMessage.set(`Error processing ${file.name}: ${error.message}`);
       }
+      
     }
   }
   
@@ -114,7 +157,7 @@
       });
     }
   });
-  </script>
+</script>
   
   <div class="file-manager-container">
     <Willow>
@@ -122,6 +165,8 @@
         {init}
         mode="cards"
         icons="simple"
+        data={rawData}
+        on:data-request={loadData}
         on:change={handleStateChange}
         drive={$driveInfo}
       />
