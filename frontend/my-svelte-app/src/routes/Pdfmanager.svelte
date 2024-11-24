@@ -3,16 +3,23 @@
   import { Filemanager } from "wx-svelte-filemanager";
   import { Willow } from "wx-svelte-filemanager";
   import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+  import { RestDataProvider } from "wx-filemanager-data-provider";
   import { fileManagerState, pdfContents, driveInfo, statusMessage } from '../store.js';
+  
   
   let api;
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
   let rawData = [];
+
+  const url = "http://localhost:3000/api";
+  const restProvider = new RestDataProvider(url);
   
   // 파일 매니저 초기화
   function init(fileManagerApi) {
     api = fileManagerApi;
+    
+    api.setNext(restProvider);
   
     statusMessage.set('파일 매니저 로드 완료');
     // 파일 업로드 처리
@@ -31,15 +38,25 @@
     });
   }
 
-  $: {
-    fetch("/api/files")
-      .then((data) => data.json())
-      .then((data) => (rawData = data))
-      .then((data)=>{
-        console.log(data);
-        statusMessage.set(data.files);
-      })
-  }
+  // $: {
+  //   fetch("/api/files")
+  //     .then((data) => data.json())
+  //     .then((data) => (rawData = data))
+  //     .then((data)=>{
+  //       console.log(data);
+  //       statusMessage.set(data.files);
+  //     })
+  // }
+
+  
+
+  $: data = [];
+  $: drive = {};
+
+  Promise.all([restProvider.loadFiles(), restProvider.loadInfo()]).then(([files, info]) => {
+    data = files;
+    drive = info.stats;
+  });
   
 </script>
   
@@ -50,8 +67,8 @@
         bind:api
         mode="cards"
         icons="simple"
-        data={rawData}
-        drive={$driveInfo}
+        {data}
+        {drive}
       />
     </Willow>
     
