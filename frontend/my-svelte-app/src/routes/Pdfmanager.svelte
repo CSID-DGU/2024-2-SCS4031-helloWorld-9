@@ -55,8 +55,13 @@
 
   Promise.all([restProvider.loadFiles(), restProvider.loadInfo()]).then(([files, info]) => {
     data = files;
-    drive = info.stats;
+    drive = info;
   });
+
+  $: {
+    console.log("Updated drive:", drive);
+  }
+
   
 </script>
   

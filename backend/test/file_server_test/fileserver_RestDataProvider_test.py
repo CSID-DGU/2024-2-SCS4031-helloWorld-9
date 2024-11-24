@@ -56,9 +56,26 @@ async def loadfile_test():
 
     return JSONResponse(content=dummy_data)
 
-@app.get("/info")
-async def loadinfo_test():
-    return "hello"
+@app.get("/info", response_model=Union[FolderInfo, FileSystemInfo])
+async def loadinfo_test(id: Optional[str] = Query(None)):
+    """
+    id가 제공되면 폴더 정보 반환, 제공되지 않으면 파일 시스템 정보 반환
+    """
+    if id:
+        # id가 제공된 경우 폴더 정보 반환
+        folder_info = {
+            "Size": 47597382,  # 폴더 크기
+            "Count": 17        # 폴더 내 항목 수
+        }
+        return JSONResponse(content=folder_info)
+
+    # id가 제공되지 않은 경우 파일 시스템 정보 반환
+    file_system_info = {
+        "free": 0,                   # 남은 공간
+        "total": 467300933632,       # 전체 공간 (Todo : 실제의 서버 용량을 측정하여 반영)
+        "used": 239621727232         # 사용된 공간 (Todo : 실제의 서버 용량을 측정하여 반영)
+    } 
+    return JSONResponse(content=file_system_info)
 
 if __name__ == "__main__":
     import uvicorn
