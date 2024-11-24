@@ -8,8 +8,10 @@ from typing import Optional, Union
 import shutil
 import os
 import uvicorn
+import logging
 
 app = FastAPI()
+
 
 # 모델 정의
 class FolderInfo(BaseModel):
@@ -27,24 +29,25 @@ async def loadfile_test(directory: str = "./uploads"): # Todo : 실제 경로로
     서버의 실제 파일 및 폴더 정보를 반환
     :param directory: 디렉토리를 지정. 기본값은 './uploads'
     """
+    
     base_path = Path(directory).resolve()  # 절대 경로로 변환
-    print(base_path)
+
+    print(f"Resolved path: {base_path}")
+
     if not base_path.exists():
+        print(f"Directory {directory} does not exist")
         return JSONResponse(content={"error": f"Directory {directory} does not exist"}, status_code=404)
 
     files = []
     for item in base_path.iterdir():
         files.append({
-            # "id": str(item.relative_to(base_path)),
-            "id": "/Pictures/162822515312968813.png",
-            "size": item.stat().st_size,  # 파일 크기
-            # "date": datetime.fromtimestamp(item.stat().st_mtime).isoformat(),  # 마지막 수정 시간
-            "date": "2023-12-01T14:45:00",
-            #"type": "folder" if item.is_dir() else "file",
-            "type": "file",
+            "id": f"/{item.relative_to(base_path)}",
+            "size": item.stat().st_size,
+            "date": datetime.fromtimestamp(item.stat().st_mtime).isoformat(timespec="seconds"),
+            "type": "folder" if item.is_dir() else "file",
         })
-        
-    print(files)
+    
+    print(f"Files: {files}")
 
     return JSONResponse(content=files)
 
