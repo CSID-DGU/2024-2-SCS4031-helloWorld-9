@@ -1,10 +1,12 @@
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Query, Request, UploadFile, File
 from fastapi.responses import FileResponse
 from pathlib import Path
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Union
+import shutil
+import os
 import uvicorn
 
 app = FastAPI()
@@ -78,18 +80,23 @@ async def loadinfo_test(id: Optional[str] = Query(None)):
     return JSONResponse(content=file_system_info)
 
 @app.post("/upload")
-async def upload_test(request: Request):
-    # 요청 헤더 출력
-    headers = request.headers
-    print("Headers:", headers)
+async def upload_test(file: UploadFile = File(...), id: str = "/"):
+    """
+    업로드된 파일을 저장
+    :param file: 업로드된 파일 객체
+    :param id: 저장할 경로 (쿼리 매개변수)
+    """
+    # 파일 이름과 경로 설정
+    save_path = f"./uploads/{id.strip('/')}/{file.filename}"
 
-    # 요청 본문 출력
-    body = await request.body()
-    print("Raw Body:", body)
+    # 디렉토리 생성 (없을 경우)
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-    # 요청 쿼리 매개변수 출력 (만약 있다면)
-    query_params = request.query_params
-    print("Query Params:", query_params)
+    # 파일 저장
+    with open(save_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"filename": file.filename, "saved_to": save_path}
 
 
 if __name__ == "__main__":
