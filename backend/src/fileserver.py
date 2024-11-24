@@ -71,11 +71,12 @@ async def loadinfo_test(id: Optional[str] = Query(None)):
         return JSONResponse(content=folder_info)
 
     # id가 제공되지 않은 경우 파일 시스템 정보 반환
+    total, used, free = shutil.disk_usage("/")
     file_system_info = {
-        "free": 0,                   # 남은 공간
-        "total": 467300933632,       # 전체 공간 (Todo : 실제의 서버 용량을 측정하여 반영)
-        "used": 239621727232         # 사용된 공간 (Todo : 실제의 서버 용량을 측정하여 반영)
-    } 
+        "free": free,    # 남은 공간 (bytes)
+        "total": total,  # 전체 공간 (bytes)
+        "used": used     # 사용된 공간 (bytes)
+    }
     return JSONResponse(content=file_system_info)
 
 @app.post("/upload")
