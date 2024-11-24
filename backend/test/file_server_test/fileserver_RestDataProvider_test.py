@@ -1,14 +1,26 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse
 from pathlib import Path
 from datetime import datetime
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional, Union
 import uvicorn
 
 app = FastAPI()
 
+# 모델 정의
+class FolderInfo(BaseModel):
+    Size: int  # 폴더 크기
+    Count: int  # 폴더 내 항목 수
+
+class FileSystemInfo(BaseModel):
+    free: int  # 남은 공간
+    total: int  # 전체 공간
+    used: int  # 사용된 공간
+
 @app.get("/files")
-async def test():
+async def loadfile_test():
     dummy_data = [
         {
             "id": "/Code",
@@ -44,7 +56,10 @@ async def test():
 
     return JSONResponse(content=dummy_data)
 
+@app.get("/info")
+async def loadinfo_test():
+    return "hello"
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("fileserver_test:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("fileserver_RestDataProvider_test:app", host="127.0.0.1", port=8000, reload=True)
