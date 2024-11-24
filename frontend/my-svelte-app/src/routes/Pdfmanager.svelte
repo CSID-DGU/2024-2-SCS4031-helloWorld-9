@@ -13,17 +13,6 @@
   // 파일 매니저 초기화
   function init(fileManagerApi) {
     api = fileManagerApi;
-    
-    // 컨텍스트 메뉴 커스터마이징
-    api.intercept("context-menu", (action) => {
-      const defaultMenu = action.menu;
-      defaultMenu.push({
-        id: "upload-pdf",
-        text: "PDF 업로드",
-        icon: "wxi-file-upload"
-      });
-      return defaultMenu;
-    });
   
     // 파일 업로드 처리
     api.on("upload-pdf", async ({ id: targetFolder }) => {
