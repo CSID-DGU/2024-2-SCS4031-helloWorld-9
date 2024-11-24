@@ -22,6 +22,7 @@
     api.setNext(restProvider);
   
     statusMessage.set('파일 매니저 로드 완료');
+    
     // 파일 업로드 처리
     api.on("upload-pdf", async ({ id: targetFolder }) => {
       const input = document.createElement('input');

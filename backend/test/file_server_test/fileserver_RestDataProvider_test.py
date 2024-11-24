@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import FileResponse
 from pathlib import Path
 from datetime import datetime
@@ -76,6 +76,21 @@ async def loadinfo_test(id: Optional[str] = Query(None)):
         "used": 239621727232         # 사용된 공간 (Todo : 실제의 서버 용량을 측정하여 반영)
     } 
     return JSONResponse(content=file_system_info)
+
+@app.post("/upload")
+async def upload_test(request: Request):
+    # 요청 헤더 출력
+    headers = request.headers
+    print("Headers:", headers)
+
+    # 요청 본문 출력
+    body = await request.body()
+    print("Raw Body:", body)
+
+    # 요청 쿼리 매개변수 출력 (만약 있다면)
+    query_params = request.query_params
+    print("Query Params:", query_params)
+
 
 if __name__ == "__main__":
     import uvicorn
