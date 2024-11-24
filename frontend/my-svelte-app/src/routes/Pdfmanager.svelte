@@ -12,8 +12,8 @@
 
   let rawData = [];
 
-  const url = "http://localhost:3000/api";
-  const restProvider = new RestDataProvider(url);
+  const fileserver_url = "/api/fileserver";
+  const restProvider = new RestDataProvider(fileserver_url);
   
   // 파일 매니저 초기화
   function init(fileManagerApi) {

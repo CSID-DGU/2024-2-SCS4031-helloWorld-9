@@ -5,7 +5,7 @@ import shutil
 
 router = APIRouter()  # APIRouter 생성
 
-@router.get("/")
+@router.get("/info")
 async def loadinfo_test(id: Optional[str] = Query(None)):
     """
     id가 제공되면 폴더 정보 반환, 제공되지 않으면 파일 시스템 정보 반환
