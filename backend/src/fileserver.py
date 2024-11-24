@@ -10,8 +10,11 @@ import os
 import uvicorn
 import logging
 
-app = FastAPI()
+app = FastAPI(debug=True)
 
+# 로깅 설정
+logging.basicConfig(level=logging.DEBUG)  # 기본 로그 레벨을 DEBUG로 설정
+logger = logging.getLogger(__name__)     # 로거 객체 생성
 
 # 모델 정의
 class FolderInfo(BaseModel):
@@ -32,10 +35,11 @@ async def loadfile_test(directory: str = "./uploads"): # Todo : 실제 경로로
     
     base_path = Path(directory).resolve()  # 절대 경로로 변환
 
-    print(f"Resolved path: {base_path}")
+    if app.debug:
+        logger.debug(f"Resolved path: {base_path}")
 
     if not base_path.exists():
-        print(f"Directory {directory} does not exist")
+        logger.warning(f"Directory {directory} does not exist")
         return JSONResponse(content={"error": f"Directory {directory} does not exist"}, status_code=404)
 
     files = []
@@ -47,7 +51,8 @@ async def loadfile_test(directory: str = "./uploads"): # Todo : 실제 경로로
             "type": "folder" if item.is_dir() else "file",
         })
     
-    print(f"Files: {files}")
+    if app.debug:
+        logger.debug(f"Files: {files}")
 
     return JSONResponse(content=files)
 
