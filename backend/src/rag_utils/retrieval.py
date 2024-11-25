@@ -11,7 +11,6 @@ load_dotenv(override=True)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 EMBEDDINGS = OpenAIEmbeddings()
 # embedding.py
-DB_PATH = os.path.abspath(os.path.join(script_dir, '..', '..', 'backend', 'vectorDB'))
 DB_INDEX = "faiss"
 LLM = ChatOpenAI(model_name="gpt-4o", temperature=0)
 PROMPT = PromptTemplate.from_template(
@@ -29,7 +28,8 @@ Answer in Korean.
 )
 
 class Retriev_Gen:
-    def __init__(self):
+    def __init__(self, db_path: str):
+        self.db_path = db_path
         self.vectorstore = None
         self.chain = None
         self.update_docs()
@@ -47,7 +47,7 @@ class Retriev_Gen:
             print(f"내용: {result.page_content}")
 
     def update_docs(self):
-        self.vectorstore = FAISS.load_local(DB_PATH, embeddings=EMBEDDINGS, allow_dangerous_deserialization=True)
+        self.vectorstore = FAISS.load_local(self.db_path, embeddings=EMBEDDINGS, allow_dangerous_deserialization=True)
         self.retriever = self.vectorstore.as_retriever()
         self.chain = (
             {"context": self.retriever, "question": RunnablePassthrough()}

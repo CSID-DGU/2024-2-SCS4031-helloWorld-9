@@ -4,10 +4,10 @@ from config import DB_PATH
 
 if __name__ == "__main__":
     print(DB_PATH)
-    embedder = Embedder()
-    embedder.add_docs("hanhwa-testdata.pdf")
+    embedder = Embedder(db_path=DB_PATH)
+    embedder.add_docs("test_data/hanhwa-testdata.pdf")
 
-    responser = Retriev_Gen()
+    responser = Retriev_Gen(db_path=DB_PATH)
     
     question = "보험금 청구 절차는??"
     response = responser.get_response(question)

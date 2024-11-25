@@ -12,14 +12,16 @@ load_dotenv(override=True)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 EMBEDDINGS = OpenAIEmbeddings()
 # embedding.py
-DB_PATH = os.path.abspath(os.path.join(script_dir, '..', '..', 'backend', 'vectorDB'))
 
 class Embedder:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+
     def add_docs(self, docs_path):
         # 기존 벡터스토어 로드 여부 확인
-        index_file_path = os.path.join(DB_PATH, "index.faiss")
+        index_file_path = os.path.join(self.db_path, "index.faiss")
         if os.path.exists(index_file_path):
-            vectorstore = FAISS.load_local(DB_PATH, embeddings=EMBEDDINGS, allow_dangerous_deserialization=True)
+            vectorstore = FAISS.load_local(self.db_path, embeddings=EMBEDDINGS, allow_dangerous_deserialization=True)
         else:
             vectorstore = FAISS(
                 index=faiss.IndexFlatL2(1536),  # 벡터 차원 사용
@@ -39,7 +41,7 @@ class Embedder:
         )
 
         # 벡터스토어 저장
-        vectorstore.save_local(DB_PATH)
+        vectorstore.save_local(self.db_path)
     
     def remove_docs(self):
         pass
