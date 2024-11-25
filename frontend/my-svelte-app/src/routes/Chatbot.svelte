@@ -1,19 +1,21 @@
+<!-- Chatbot.svelte -->
 <script>
   import { writable } from 'svelte/store';
   import { pdfContents, fileManagerState, statusMessage } from '../store.js';
 
-  const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
   let questionText = '';
   let answerText = '';
+  let references = [];
+  let isLoading = false;
 
-  // fileManagerState에서 모든 PDF 파일 목록을 가져오는 함수
+  // PDF 파일 관련 함수들 (주석 처리)
+  /*
   function getPdfFiles() {
     return $fileManagerState.structure.filter(item => 
       item.type === 'file' && item.id.toLowerCase().endsWith('.pdf')
     );
   }
 
-  // 모든 PDF 파일의 내용을 가져오는 함수
   function getAllPdfContent() {
     let content = '';
     const pdfFiles = getPdfFiles();
@@ -27,55 +29,56 @@
     
     return content;
   }
+  */
 
   async function askChatbot() {
-    console.log("질문하기 버튼이 클릭되었습니다.");
-
     if (!questionText) {
       answerText = "질문을 입력해주세요.";
       return;
     }
 
+    /* PDF 파일 체크 부분 주석 처리
     const pdfContent = getAllPdfContent();
     if (!pdfContent) {
       answerText = "분석할 PDF 파일이 없습니다. 먼저 PDF 파일을 업로드해주세요.";
       return;
     }
+    */
 
-    const fullInput = `다음 PDF 파일들의 내용을 참고하여 질문에 답변해주세요:\n\n${pdfContent}\n\n질문: ${questionText}`;
-
+    isLoading = true;
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // 여기를 8000 포트로 수정
+      const response = await fetch('http://localhost:8000/api/chatbot/get-answer', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [{ role: 'user', content: fullInput }]
+          question: questionText
         })
       });
 
+
       if (!response.ok) {
-        answerText = `Error: ${response.status} ${response.statusText}`;
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      if (data.choices && data.choices.length > 0) {
-        answerText = data.choices[0].message.content;
-      } else {
-        answerText = "API 응답에서 답변을 찾을 수 없습니다.";
-      }
+      answerText = data.answer;
+      references = data.references || [];
     } catch (error) {
       answerText = `Error: ${error.message}`;
+      references = [];
+    } finally {
+      isLoading = false;
     }
   }
 </script>
 
 <div class="card">
   <h2>챗봇</h2>
+  <!-- PDF 파일 목록 표시 부분 주석 처리 -->
+  <!--
   <div class="file-info">
     <h3>현재 로드된 PDF 파일 목록:</h3>
     <ul>
@@ -84,16 +87,33 @@
       {/each}
     </ul>
   </div>
+  -->
+  
   <textarea 
     bind:value={questionText} 
     placeholder="PDF 문서의 내용에 대해 궁금한 점을 물어보세요"
     class="question-input"
   ></textarea>
-  <button class="button-primary" on:click={askChatbot}>질문하기</button>
+  <button class="button-primary" on:click={askChatbot} disabled={isLoading}>
+    {isLoading ? '처리 중...' : '질문하기'}
+  </button>
+  
   {#if answerText}
     <div class="answer">
       <h3>답변:</h3>
       <p>{answerText}</p>
+    </div>
+  {/if}
+  
+  {#if references.length > 0}
+    <div class="references">
+      <h3>참조 문서:</h3>
+      {#each references as ref}
+        <div class="reference-item">
+          <p class="source">출처: {ref.source}</p>
+          <p class="content">{ref.content}</p>
+        </div>
+      {/each}
     </div>
   {/if}
 </div>
@@ -108,6 +128,8 @@
     margin-bottom: 20px;
   }
 
+  /* 주석 처리된 파일 정보 스타일 유지 */
+  /*
   .file-info {
     margin: 15px 0;
     padding: 10px;
@@ -124,6 +146,7 @@
     margin: 5px 0;
     color: #666;
   }
+  */
 
   .question-input {
     width: 100%;
@@ -145,7 +168,12 @@
     margin: 10px 0;
   }
 
-  .button-primary:hover {
+  .button-primary:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+
+  .button-primary:hover:not(:disabled) {
     background-color: #0056b3;
   }
 
@@ -156,13 +184,29 @@
     border-radius: 5px;
   }
 
-  .answer h3 {
-    margin-top: 0;
-    color: #333;
+  .references {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
   }
 
-  .answer p {
-    margin: 10px 0 0 0;
-    line-height: 1.5;
+  .reference-item {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+
+  .source {
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 5px;
+  }
+
+  .content {
+    white-space: pre-wrap;
+    color: #333;
   }
 </style>

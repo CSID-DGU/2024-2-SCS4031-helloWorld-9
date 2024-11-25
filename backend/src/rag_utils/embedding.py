@@ -11,7 +11,8 @@ import os
 load_dotenv(override=True)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 EMBEDDINGS = OpenAIEmbeddings()
-DB_PATH = os.path.abspath(os.path.join(script_dir, '..', 'vectorDB'))
+# embedding.py
+DB_PATH = os.path.abspath(os.path.join(script_dir, '..', '..', 'backend', 'vectorDB'))
 
 class Embedder:
     def add_docs(self, docs_path):

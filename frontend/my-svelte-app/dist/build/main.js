@@ -833,6 +833,7 @@ function instance($$self, $$props, $$invalidate) {
 
 	// 챗봇 질문 함수
 	async function askChatbot() {
+		/*
 		const pdfContent = getAllContent();
 
 		if (!pdfContent) {
@@ -841,22 +842,43 @@ function instance($$self, $$props, $$invalidate) {
 		}
 
 		const fullInput = `다음 PDF 문서들의 내용을 바탕으로 질문에 답변해주세요:\n\n${pdfContent}\n\n질문: ${questionText}`;
-
+*/
 		try {
-			const response = await fetch('https://api.openai.com/v1/chat/completions', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${API_KEY}`
-				},
-				body: JSON.stringify({
-					model: 'gpt-3.5-turbo',
-					messages: [{ role: 'user', content: fullInput }]
-				})
-			});
-
-			const data = await response.json();
-			$$invalidate(2, answerText = data.choices[0].message.content);
+			try {
+				/* OpenAI API 직접 호출 부분 주석 처리
+				const response = await fetch('https://api.openai.com/v1/chat/completions', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${API_KEY}`
+					},
+					body: JSON.stringify({
+						model: 'gpt-3.5-turbo',
+						messages: [{ role: 'user', content: fullInput }]
+					})
+				});
+		
+				const data = await response.json();
+				$$invalidate(2, answerText = data.choices[0].message.content);
+				*/
+		
+				// 새로운 백엔드 엔드포인트 호출
+				const response = await fetch('/api/chatbot/get-answer', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						question: questionText
+					})
+				});
+		
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+		
+				const data = await response.json();
+				$$invalidate(2, answerText = data.answer);
 		} catch(error) {
 			$$invalidate(2, answerText = `Error: ${error.message}`);
 		}
