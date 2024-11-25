@@ -1,7 +1,9 @@
-from embedding import Embedder
-from retrieval import Retriev_Gen
+from rag_utils.embedding import Embedder
+from rag_utils.retrieval import Retriev_Gen
+from config import DB_PATH
 
 if __name__ == "__main__":
+    print(DB_PATH)
     embedder = Embedder()
     embedder.add_docs("hanhwa-testdata.pdf")
 
