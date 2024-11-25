@@ -5,3 +5,5 @@ vectorDB/*
 data/*
 __pycache__
 *.pdf
+*.complete
+uploads/*
