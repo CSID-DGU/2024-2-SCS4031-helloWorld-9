@@ -48,7 +48,7 @@
     isLoading = true;
     try {
       // 여기를 8000 포트로 수정
-      const response = await fetch('http://localhost:8000/api/chatbot/get-answer', {
+      const response = await fetch('/api/chatbot/get-answer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

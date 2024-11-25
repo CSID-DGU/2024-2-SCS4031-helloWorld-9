@@ -12,7 +12,7 @@ export default defineConfig({
     proxy: {
       // API 요청을 FastAPI로 프록시
       '/api': {
-        target: 'http://127.0.0.1:8000', // FastAPI가 실행 중인 주소
+        target: 'http://localhost:8000', // FastAPI가 실행 중인 주소
         changeOrigin: true,
       }
     }
