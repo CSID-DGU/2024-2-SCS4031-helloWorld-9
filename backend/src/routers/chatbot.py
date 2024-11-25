@@ -5,13 +5,14 @@ from typing import List, Optional
 import logging
 from rag_utils.embedding import Embedder  # VectorDB 초기화에 필요
 from rag_utils.retrieval import Retriev_Gen  # RAG 시스템
+from config import DB_PATH
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # 전역 변수로 RAG 시스템 초기화
 try:
-    responser = Retriev_Gen()
+    responser = Retriev_Gen(db_path=DB_PATH)
 except Exception as e:
     logger.error(f"Failed to initialize RAG system: {str(e)}")
     responser = None
@@ -51,4 +52,9 @@ async def get_answer(request: ChatbotRequest):
         
     except Exception as e:
         logger.error(f"Error processing chatbot request: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        #raise HTTPException(status_code=500, detail=str(e))
+        return ChatbotResponse(
+                answer=str(e),
+                references=None
+            )
+        
