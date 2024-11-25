@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from routers import files, info, upload  # 라우터 모듈 임포트
+from rag_utils.embedding import *
 import threading
 import time
 import os
@@ -20,11 +21,12 @@ app.include_router(upload.router, prefix="/api/fileserver", tags=["Upload"])
 """
 # 업로드 폴더 경로 설정
 UPLOADS_DIR = 'uploads'
+embedder = Embedder()
 
 def perform_embedding_task(file_path):
     print(f"Performing task on: {file_path}")
 
-    # 임베딩 작업 수행
+    embedder.add_docs(file_path)
 
     completed_path = f"{file_path}.complete"
     os.rename(file_path, completed_path)
