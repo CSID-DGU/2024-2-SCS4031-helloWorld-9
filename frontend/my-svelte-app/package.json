@@ -16,6 +16,7 @@
     "dotenv": "^16.4.5",
     "pdfjs-dist": "^4.8.69",
     "svelte-spa-router": "^4.0.1",
+    "wx-filemanager-data-provider": "^1.3.0",
     "wx-svelte-filemanager": "^1.3.0"
   }
 }
