@@ -5,3 +5,4 @@ vectorDB/*
 data/*
 __pycache__
 *.pdf
+/backend/src/vectorDB
