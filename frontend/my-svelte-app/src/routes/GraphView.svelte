@@ -160,6 +160,7 @@
       fill: steelblue;
       stroke: white;
       stroke-width: 1.5px;
+      
     }
   
     .link {
