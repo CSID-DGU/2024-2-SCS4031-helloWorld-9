@@ -18,7 +18,8 @@ import streamlit as st
 # FAISS(Facebook AI Similarity Search)는, 그 자체로 AI 모델은 아니고 벡터 검색 라이브러리임.
 # 대규모 데이터셋에서 고속으로 유사한 벡터를 찾기 위한 최근접 이웃 검색(Nearest Neighbor Search)을 수행함.
 
-api_key = os.getenv("OPENAI_API_KEY")
+# api_key = os.getenv("OPENAI_API_KEY")
+os.environ["OPENAI_API_KEY"] = "실제 API_KEY 를 여기에 넣으시오"
 
 # 단계 1: 문서 로드(Load Documents)
 loader = PyMuPDFLoader("data/test.pdf")
