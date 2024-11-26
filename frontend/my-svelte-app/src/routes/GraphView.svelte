@@ -114,27 +114,27 @@
       let isDragging = false;
       let startX, startY;
   
-      // 마우스 이벤트로 화면 드래그 구현
-    //   d3.select(graphContainer)
-    //     .on("mousedown", (event) => {
-    //       isDragging = true;
-    //       startX = event.clientX;
-    //       startY = event.clientY;
-    //     })
-    //     .on("mousemove", (event) => {
-    //       if (isDragging) {
-    //         const dx = event.clientX - startX;
-    //         const dy = event.clientY - startY;
-    //         startX = event.clientX;
-    //         startY = event.clientY;
-    //         const currentTransform = svg.attr("transform") || "translate(0,0)";
-    //         const [currentX, currentY] = currentTransform.replace("translate(", "").replace(")", "").split(",").map(Number);
-    //         svg.attr("transform", `translate(${currentX + dx},${currentY + dy})`);
-    //       }
-    //     })
-    //     .on("mouseup", () => {
-    //       isDragging = false;
-    //     });
+      //마우스 이벤트로 화면 드래그 구현
+      d3.select(graphContainer)
+        .on("mousedown", (event) => {
+          isDragging = true;
+          startX = event.clientX;
+          startY = event.clientY;
+        })
+        .on("mousemove", (event) => {
+          if (isDragging) {
+            const dx = event.clientX - startX;
+            const dy = event.clientY - startY;
+            startX = event.clientX;
+            startY = event.clientY;
+            const currentTransform = svg.attr("transform") || "translate(0,0)";
+            const [currentX, currentY] = currentTransform.replace("translate(", "").replace(")", "").split(",").map(Number);
+            svg.attr("transform", `translate(${currentX + dx},${currentY + dy})`);
+          }
+        })
+        .on("mouseup", () => {
+          isDragging = false;
+        });
     });
   </script>
   
