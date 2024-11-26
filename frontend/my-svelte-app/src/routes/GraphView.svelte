@@ -28,6 +28,7 @@
     onMount(() => {
       const width = 2000;
       const height = 2000;
+      
   
       // SVG 요소 및 컨테이너 설정
       svg = d3.select("#graph")
@@ -160,7 +161,7 @@
       fill: steelblue;
       stroke: white;
       stroke-width: 1.5px;
-      
+
     }
   
     .link {
