@@ -144,20 +144,23 @@
 }
 
   .user-message .message-content {
-    background-color: #0084ff;
+    background-color: #e07100;
     color: white;
     margin-left: auto;
+    font-size: 24px;
   }
 
   .bot-message .message-content {
     background-color: white;
     color: black;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 24px;
   }
 
   .loading-message {
     display: flex;
     justify-content: flex-start;
+    font-size: 24px;
   }
 
   .loading-message .message-content {
@@ -165,7 +168,7 @@
     color: #65676b;
     padding: 8px 16px;
     border-radius: 18px;
-    font-size: 0.9em;
+    font-size: 24px;
   }
 
   .chat-input {
@@ -185,13 +188,13 @@ textarea {
     min-height: 90%; /* 부모 높이만큼 차지 */
     outline: none;
     font-family: inherit;
-    font-size: 20px;
+    font-size: 24px;
     line-height: 1.5;
 }
 
 
   .send-button {
-    background-color: #0084ff;
+    background-color: #e07100;
     color: white;
     border: none;
     border-radius: 20px;
@@ -199,15 +202,18 @@ textarea {
     cursor: pointer;
     font-weight: 500;
     height: 44px;
+    font-size: 24px;
   }
 
   .send-button:disabled {
     background-color: #e4e6eb;
     cursor: not-allowed;
+    font-size: 24px;
   }
 
   .send-button:hover:not(:disabled) {
-    background-color: #0073e6;
+    background-color: #e07100;
+    font-size: 24px;
   }
 
   .references-container {
@@ -222,7 +228,7 @@ textarea {
     border-radius: 12px;
     padding: 10px;
     margin-top: 8px;
-    font-size: 0.9em;
+    font-size: 24px;
   }
 
   .source {

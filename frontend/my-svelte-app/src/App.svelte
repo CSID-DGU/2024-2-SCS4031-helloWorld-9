@@ -23,12 +23,12 @@
     margin: 0;
     background-color: #f0f2f5;
     color: #333;
-    font-size: 25px;
+    font-size: 30px;
   }
 
   .sidebar {
     width: 250px;
-    background-color: #0084ff;
+    background-color: #e07100;
     color: #fff;
     display: flex;
     flex-direction: column;
