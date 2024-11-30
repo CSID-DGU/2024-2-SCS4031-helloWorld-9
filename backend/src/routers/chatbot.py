@@ -33,7 +33,10 @@ async def get_answer(request: ChatbotRequest):
                 answer=f"Retriev_Gen Failed : {retriev_gen_error}",
                 references=None
             )
-            
+        
+        # Retriev_Gen() 호출 responser 생성 시점 이후에 추가된 문서를 로드
+        responser.update_docs()
+
         # 질문에 대한 응답 생성
         answer = responser.get_response(request.question)
         
