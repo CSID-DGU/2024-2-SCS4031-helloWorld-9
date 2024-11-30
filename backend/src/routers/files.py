@@ -29,3 +29,12 @@ async def loadfile_test(directory: str = root_upload_path):
             "type": "folder" if item.is_dir() else "file",
         })
     return JSONResponse(content=files)
+
+# 업로드된 파일 삭제 구현
+@router.delete("/files")
+async def delete_uploaded_file():
+    test_json = {
+        "test":"delete"
+    }
+    logger.info(f"delete works")
+    return JSONResponse(content=test_json)
