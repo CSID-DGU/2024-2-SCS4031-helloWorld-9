@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 # CPU bound 인 embed_pdf 는 def 로 구현하였음
 
 embedder = Embedder(db_path=DB_PATH)
+root_upload_path = "./uploads"
 
 
 def embed_pdf(user_uploaded_file_path):
@@ -29,7 +30,7 @@ async def upload_test(file: UploadFile = File(...), id: str = "/"):
     """
     업로드된 파일을 저장
     """
-    save_path = f"./uploads/{id.strip('/')}/{file.filename}"
+    save_path = f"{root_upload_path}/{id.strip('/')}/{file.filename}"
 
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 

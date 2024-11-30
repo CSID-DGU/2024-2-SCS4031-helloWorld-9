@@ -7,8 +7,10 @@ import logging
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
 
+root_upload_path = "./uploads"
+
 @router.get("/files")
-async def loadfile_test(directory: str = "./uploads"):
+async def loadfile_test(directory: str = root_upload_path):
     """
     서버의 실제 파일 및 폴더 정보를 반환
     """
