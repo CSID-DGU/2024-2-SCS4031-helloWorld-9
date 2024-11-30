@@ -18,20 +18,25 @@ app.include_router(route_test.router, prefix="/api/route_test", tags=["route_tes
 logger = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-http_debug = True
+http_debug = False
 @app.middleware("http")
 async def log_request(request: Request, call_next):
-    if http_debug:
+    if http_debug:  # http_debug가 True일 때만 로그를 출력
         # 요청 본문 출력
-        body = await request.body()
-        logger.info(f"Request body: {body.decode()}")
+        try:
+            body = await request.body()
+            logger.info(f"Request body: {body.decode('utf-8', errors='replace')}")  # 오류가 있는 바이트는 'replace'로 대체
+        except UnicodeDecodeError as e:
+            logger.error(f"Failed to decode request body: {e}")
+        
         # 요청 헤더 출력
         headers = dict(request.headers)
         logger.info(f"Request headers: {headers}")
-        # 요청을 처리하고, 응답을 반환
-        response = await call_next(request)
-        return response
+    
+    # 요청을 처리하고, 응답을 반환
+    response = await call_next(request)
+    return response
+
 
 if __name__ == "__main__":
     import uvicorn
