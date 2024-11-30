@@ -11,6 +11,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # 전역 변수로 RAG 시스템 초기화
+# Todo : router 에서 실패가능성이 있는 init 로직을 분리하기
 try:
     responser = Retriev_Gen(db_path=DB_PATH)
 except Exception as e:
@@ -28,6 +29,10 @@ class ChatbotResponse(BaseModel):
 async def get_answer(request: ChatbotRequest):
     try:
         if responser is None:
+            return ChatbotRequest(
+                answer="Retriev_Gen Failed", # Todo : 구체적인 오류메세지를 반환하도록 변경
+                references=""
+            )
             raise HTTPException(status_code=500, detail="RAG system not initialized")
             
         # 질문에 대한 응답 생성
