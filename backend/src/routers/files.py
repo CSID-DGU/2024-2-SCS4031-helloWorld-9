@@ -3,13 +3,15 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 from datetime import datetime
 import logging
-from config import BASE_DIR
+from config import BASE_DIR, DB_PATH
 import os
+from rag_utils.embedding import Embedder
 
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
 
 root_upload_path = f"{BASE_DIR}/uploads"
+embedder = Embedder(db_path=DB_PATH)
 
 @router.get("/files")
 async def loadfile_test(directory: str = root_upload_path):
@@ -56,5 +58,16 @@ async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
         
     # Todo : vectorDB 제거 후, 나머지 pdf 다시 임베딩
 
+    # Todo : vectorDB 삭제
+
+    # pdf_file 을 모두 읽어서 vectorDB 복구
+    pdf_files = [f for f in os.listdir(root_upload_path) if f.endswith('.pdf')]
+    for pdf_file in pdf_files:
+        pdf_path = os.path.join(root_upload_path, pdf_file)
+        logger.info(f"start embedding : {pdf_path}")
+        # embedding 수행
+        embedder.add_docs(pdf_path)
+        logger.info(f"embeding complete : {pdf_path}")
+    logger.info(f"VectorDB restored after file delete : {pdf_path}")
 
     return {"message": "Files deletion completed", "deleted_files": ids}
