@@ -1,18 +1,21 @@
 <script>
+  import { chatMessages } from '../store.js';
+
   let questionText = '';
-  let answerText = '';
-  let references = [];
   let isLoading = false;
-  let messages = []; // 대화 내용을 저장할 배열
 
   async function askChatbot() {
     if (!questionText) {
-      answerText = "질문을 입력해주세요.";
+      $chatMessages = [...$chatMessages, {
+        question: '',
+        answer: "질문을 입력해주세요.",
+        references: []
+      }];
       return;
     }
 
-    const currentQuestion = questionText; // 현재 질문 저장
-    questionText = ''; // 입력창 비우기
+    const currentQuestion = questionText;
+    questionText = '';
     isLoading = true;
 
     try {
@@ -31,14 +34,14 @@
       }
 
       const data = await response.json();
-      // 대화 내용을 배열에 추가
-      messages = [...messages, {
+      // store를 사용하여 메시지 저장
+      $chatMessages = [...$chatMessages, {
         question: currentQuestion,
         answer: data.answer,
         references: data.references || []
       }];
     } catch (error) {
-      messages = [...messages, {
+      $chatMessages = [...$chatMessages, {
         question: currentQuestion,
         answer: `Error: ${error.message}`,
         references: []
@@ -51,7 +54,7 @@
 
 <div class="chat-container">
   <div class="chat-messages">
-    {#each messages as message}
+    {#each $chatMessages as message}
       <div class="message-pair">
         <div class="user-message">
           <div class="message-content">
