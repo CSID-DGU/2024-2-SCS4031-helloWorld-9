@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Body
 from fastapi.responses import JSONResponse
 from pathlib import Path
 from datetime import datetime
 import logging
 from config import BASE_DIR
+import os
 
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
@@ -34,16 +35,26 @@ async def loadfile_test(directory: str = root_upload_path):
 
 # 업로드된 파일 삭제
 @router.delete("/files")
-async def delete_uploaded_file(file_path: str):
+async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
+    logger.info(f"Received data to delete: {ids}")
 
-    # 파일 경로 생성
-    file_to_delete = Path(root_upload_path) / Path(file_path)
+    # ids에서 불필요한 문자 제거 후 리스트로 변환
+    ids = ids.strip('{}"ids:[]').split(",")
+    
+    logger.info(f"Files to delete: {ids}")
 
-    try:
-        # 파일 삭제
-        file_to_delete.unlink()  # 파일 삭제
-        logger.info(f"File {file_to_delete} has been deleted successfully.")
-        return JSONResponse(content={"message": f"File {file_to_delete} deleted successfully."})
-    except Exception as e:
-        logger.error(f"Error deleting file {file_to_delete}: {e}")
-        return JSONResponse(content={"message": f"ERROR : File {file_to_delete} deleted failed."})
+    for file_path in ids:
+        file_path = file_path.strip()  # 공백 제거
+        file_to_delete = os.path.join(root_upload_path, file_path.lstrip('/'))  # 경로 결합
+
+        # 파일이 존재하면 삭제
+        if os.path.exists(file_to_delete) and os.path.isfile(file_to_delete):
+            os.remove(file_to_delete)  # 파일 삭제
+            logger.info(f"Deleted file: {file_to_delete}")
+        else:
+            logger.warning(f"File does not exist or is not a file: {file_to_delete}")
+        
+    # Todo : vectorDB 제거 후, 나머지 pdf 다시 임베딩
+
+
+    return {"message": "Files deletion completed", "deleted_files": ids}
