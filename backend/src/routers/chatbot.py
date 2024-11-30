@@ -29,9 +29,9 @@ class ChatbotResponse(BaseModel):
 async def get_answer(request: ChatbotRequest):
     try:
         if responser is None:
-            return ChatbotRequest(
+            return ChatbotResponse(
                 answer="Retriev_Gen Failed", # Todo : 구체적인 오류메세지를 반환하도록 변경
-                references=""
+                references=None
             )
             raise HTTPException(status_code=500, detail="RAG system not initialized")
             
