@@ -1,6 +1,5 @@
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from routers import files, info, upload, chatbot, route_test  # 라우터 모듈 임포트
 
 app = FastAPI(debug=True)
