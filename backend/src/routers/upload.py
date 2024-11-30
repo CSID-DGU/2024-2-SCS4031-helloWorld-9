@@ -3,7 +3,7 @@ import os
 import shutil
 import logging
 from rag_utils.embedding import Embedder
-from config import DB_PATH
+from config import DB_PATH, BASE_DIR
 
 router = APIRouter()  # APIRouter 생성
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # CPU bound 인 embed_pdf 는 def 로 구현하였음
 
 embedder = Embedder(db_path=DB_PATH)
-root_upload_path = "./uploads"
+root_upload_path = f"{BASE_DIR}/uploads"
 
 
 def embed_pdf(user_uploaded_file_path):
