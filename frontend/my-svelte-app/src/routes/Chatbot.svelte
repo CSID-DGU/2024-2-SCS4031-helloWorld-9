@@ -1,212 +1,246 @@
-<!-- Chatbot.svelte -->
 <script>
-  import { writable } from 'svelte/store';
-  import { pdfContents, fileManagerState, statusMessage } from '../store.js';
+  import { chatMessages } from '../store.js';
 
   let questionText = '';
-  let answerText = '';
-  let references = [];
   let isLoading = false;
-
-  // PDF 파일 관련 함수들 (주석 처리)
-  /*
-  function getPdfFiles() {
-    return $fileManagerState.structure.filter(item => 
-      item.type === 'file' && item.id.toLowerCase().endsWith('.pdf')
-    );
-  }
-
-  function getAllPdfContent() {
-    let content = '';
-    const pdfFiles = getPdfFiles();
-    
-    pdfFiles.forEach((file) => {
-      const pdfContent = $pdfContents[file.id];
-      if (pdfContent) {
-        content += `파일 이름: ${pdfContent.filename}\n${pdfContent.content}\n\n`;
-      }
-    });
-    
-    return content;
-  }
-  */
 
   async function askChatbot() {
     if (!questionText) {
-      answerText = "질문을 입력해주세요.";
+      $chatMessages = [...$chatMessages, {
+        question: '',
+        answer: "질문을 입력해주세요.",
+        references: []
+      }];
       return;
     }
 
-    /* PDF 파일 체크 부분 주석 처리
-    const pdfContent = getAllPdfContent();
-    if (!pdfContent) {
-      answerText = "분석할 PDF 파일이 없습니다. 먼저 PDF 파일을 업로드해주세요.";
-      return;
-    }
-    */
-
+    const currentQuestion = questionText;
+    questionText = '';
     isLoading = true;
+
     try {
-      // 여기를 8000 포트로 수정
       const response = await fetch('/api/chatbot/get-answer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          question: questionText
+          question: currentQuestion
         })
       });
-
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      answerText = data.answer;
-      references = data.references || [];
+      // store를 사용하여 메시지 저장
+      $chatMessages = [...$chatMessages, {
+        question: currentQuestion,
+        answer: data.answer,
+        references: data.references || []
+      }];
     } catch (error) {
-      answerText = `Error: ${error.message}`;
-      references = [];
+      $chatMessages = [...$chatMessages, {
+        question: currentQuestion,
+        answer: `Error: ${error.message}`,
+        references: []
+      }];
     } finally {
       isLoading = false;
     }
   }
 </script>
 
-<div class="card">
-  <h2>챗봇</h2>
-  <!-- PDF 파일 목록 표시 부분 주석 처리 -->
-  <!--
-  <div class="file-info">
-    <h3>현재 로드된 PDF 파일 목록:</h3>
-    <ul>
-      {#each getPdfFiles() as file}
-        <li>{file.id.split('/').pop()}</li>
-      {/each}
-    </ul>
-  </div>
-  -->
-  
-  <textarea 
-    bind:value={questionText} 
-    placeholder="PDF 문서의 내용에 대해 궁금한 점을 물어보세요"
-    class="question-input"
-  ></textarea>
-  <button class="button-primary" on:click={askChatbot} disabled={isLoading}>
-    {isLoading ? '처리 중...' : '질문하기'}
-  </button>
-  
-  {#if answerText}
-    <div class="answer">
-      <h3>답변:</h3>
-      <p>{answerText}</p>
-    </div>
-  {/if}
-  
-  {#if references.length > 0}
-    <div class="references">
-      <h3>참조 문서:</h3>
-      {#each references as ref}
-        <div class="reference-item">
-          <p class="source">출처: {ref.source}</p>
-          <p class="content">{ref.content}</p>
+<div class="chat-container">
+  <div class="chat-messages">
+    {#each $chatMessages as message}
+      <div class="message-pair">
+        <div class="user-message">
+          <div class="message-content">
+            {message.question}
+          </div>
         </div>
-      {/each}
-    </div>
-  {/if}
+        <div class="bot-message">
+          <div class="message-content">
+            {message.answer}
+          </div>
+          {#if message.references.length > 0}
+            <div class="references-container">
+              {#each message.references as ref}
+                <div class="reference-item">
+                  <p class="source">출처: {ref.source}</p>
+                  <p class="content">{ref.content}</p>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/each}
+    {#if isLoading}
+      <div class="loading-message">
+        <div class="message-content">
+          답변을 생성하고 있습니다...
+        </div>
+      </div>
+    {/if}
+  </div>
+
+  <div class="chat-input">
+    <textarea
+      bind:value={questionText}
+      placeholder="PDF 문서의 내용에 대해 궁금한 점을 물어보세요"
+      on:keydown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          askChatbot();
+        }
+      }}
+    ></textarea>
+    <button class="send-button" on:click={askChatbot} disabled={isLoading}>
+      {isLoading ? '처리 중...' : '전송'}
+    </button>
+  </div>
 </div>
 
 <style>
-  .card {
-    background-color: #fff;
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 200px); /* 화면 높이에서 상하 여백 100px 뺀 만큼 차지 */
+    background-color: #f0f2f5;
     border-radius: 8px;
-    border: 2px solid #d3d3d3;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
     padding: 20px;
-    margin-bottom: 20px;
+     /* 화면 높이의 50%만 차지하도록 제한 */
+}
+
+  .message-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  /* 주석 처리된 파일 정보 스타일 유지 */
-  /*
-  .file-info {
-    margin: 15px 0;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
+  .user-message {
+    display: flex;
+    justify-content: flex-end;
   }
 
-  .file-info ul {
-    list-style-type: none;
-    padding-left: 0;
-  }
+  .bot-message {
+    display: flex;
+    flex-direction: column; /* flex-direction을 column으로 변경 */
+    align-items: flex-start;
+    width: 90%; /* 전체 너비의 90% 사용 */
+}
 
-  .file-info li {
-    margin: 5px 0;
-    color: #666;
-  }
-  */
+.message-content {
+    max-width: 90%; /* 70%에서 90%로 증가 */
+    padding: 12px 16px;
+    border-radius: 20px;
+    word-wrap: break-word;
+}
 
-  .question-input {
-    width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    resize: vertical;
-  }
-
-  .button-primary {
-    background-color: #007bff;
+  .user-message .message-content {
+    background-color: #e07100;
     color: white;
-    padding: 10px 20px;
+    margin-left: auto;
+    font-size: 24px;
+  }
+
+  .bot-message .message-content {
+    background-color: white;
+    color: black;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 24px;
+  }
+
+  .loading-message {
+    display: flex;
+    justify-content: flex-start;
+    font-size: 24px;
+  }
+
+  .loading-message .message-content {
+    background-color: #e4e6eb;
+    color: #65676b;
+    padding: 8px 16px;
+    border-radius: 18px;
+    font-size: 24px;
+  }
+
+  .chat-input {
+    display: flex;
+    gap: 12px;
+    align-items: stretch; /* 세로로 늘어나게 설정 */
+    background-color: white;
+    padding: 20px;
+    height: 22vh; /* 화면 높이의 45% 차지 */
+}
+textarea {
+    flex: 1;
+    padding: 16px 20px;
+    border: 1px solid #e4e6eb;
+    border-radius: 20px;
+    resize: none;
+    min-height: 90%; /* 부모 높이만큼 차지 */
+    outline: none;
+    font-family: inherit;
+    font-size: 24px;
+    line-height: 1.5;
+}
+
+
+  .send-button {
+    background-color: #e07100;
+    color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 20px;
+    padding: 10px 20px;
     cursor: pointer;
-    margin: 10px 0;
+    font-weight: 500;
+    height: 44px;
+    font-size: 24px;
   }
 
-  .button-primary:disabled {
-    background-color: #cccccc;
+  .send-button:disabled {
+    background-color: #e4e6eb;
     cursor: not-allowed;
+    font-size: 24px;
   }
 
-  .button-primary:hover:not(:disabled) {
-    background-color: #0056b3;
+  .send-button:hover:not(:disabled) {
+    background-color: #e07100;
+    font-size: 24px;
   }
 
-  .answer {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
-  }
-
-  .references {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f5f5f5;
-    border-radius: 5px;
-  }
+  .references-container {
+    width: 100%; /* 참고자료가 메시지 너비 전체를 사용하도록 설정 */
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e4e6eb;
+}
 
   .reference-item {
-    margin: 10px 0;
+    background-color: #f7f8fa;
+    border-radius: 12px;
     padding: 10px;
-    background-color: white;
-    border-radius: 4px;
-    border: 1px solid #ddd;
+    margin-top: 8px;
+    font-size: 24px;
   }
 
   .source {
-    font-weight: bold;
-    color: #666;
-    margin-bottom: 5px;
+    color: #65676b;
+    font-weight: 500;
+    margin-bottom: 4px;
   }
 
   .content {
-    white-space: pre-wrap;
-    color: #333;
+    color: #050505;
   }
 </style>

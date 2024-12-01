@@ -28,3 +28,5 @@ export const driveInfo = writable({
 
 // 상태 메시지를 저장하는 store
 export const statusMessage = writable('');
+
+export const chatMessages = writable([]);
