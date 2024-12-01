@@ -53,7 +53,12 @@ async def loadfile_test(directory: str = root_upload_path):
         })
     return JSONResponse(content=files)
 
-# 업로드된 파일 삭제
+# Todo : 업로드된 파일 삭제
+# async def 를 사용하니, 비동기로 인해 race condition 이 유발되는 듯 함. (존재하지 않는 파일을 삭제하려고 시도하여, 프로그램이 죽음)
+## try catch 등의 명시적 핸들링을 작성하여 존재하지 않는 파일을 삭제하려고 시도해도 핸들링되거나,
+## def (동기함수) 로 재구현해서 오류를 해결해야함.
+'''
+
 @router.delete("/files")
 async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
     logger.info(f"Received data to delete: {ids}")
@@ -77,3 +82,4 @@ async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
         vector_db_restore()
 
     return {"message": "Files deletion completed", "deleted_files": ids}
+'''
