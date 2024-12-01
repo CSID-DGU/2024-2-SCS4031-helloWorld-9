@@ -44,3 +44,10 @@ python3 test.py # 실제 파일이름으로 변경
 | 🔀     | :twisted_rightwards_arrows | 브랜치 합병              |
 | 💡     | :bulb                      | 주석 추가/수정           |
 | 🗃      | :card_file_box             | 데이버베이스 관련 수정   |
+
+
+ # 기능 수정하여 github 커밋 시, 새로운 python 의존성 설치 시, requirements.txt 파일 수정 명령어
+ Windows Powershell
+```sh
+pip freeze | Out-File -FilePath requirements.txt -Encoding UTF8
+```

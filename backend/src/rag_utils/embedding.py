@@ -44,4 +44,5 @@ class Embedder:
         vectorstore.save_local(self.db_path)
     
     def remove_docs(self):
+        # Todo(less important) : 이미 임베딩된 DB 수정 로직
         pass

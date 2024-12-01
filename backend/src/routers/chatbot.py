@@ -15,6 +15,7 @@ try:
     responser = Retriev_Gen(db_path=DB_PATH)
 except Exception as e:
     logger.error(f"Failed to initialize RAG system: {str(e)}")
+    retriev_gen_error = e
     responser = None
 
 class ChatbotRequest(BaseModel):
@@ -28,8 +29,14 @@ class ChatbotResponse(BaseModel):
 async def get_answer(request: ChatbotRequest):
     try:
         if responser is None:
-            raise HTTPException(status_code=500, detail="RAG system not initialized")
-            
+            return ChatbotResponse(
+                answer=f"Retriev_Gen Failed : {retriev_gen_error}",
+                references=None
+            )
+        
+        # Retriev_Gen() 호출 responser 생성 시점 이후에 추가된 문서를 로드
+        responser.update_docs()
+
         # 질문에 대한 응답 생성
         answer = responser.get_response(request.question)
         
