@@ -31,8 +31,9 @@ async def get_answer(request: ChatbotRequest):
         responser = Retriever(db_path=DB_PATH)
     except Exception as e:
         logger.error(f"Retriever gen Failed : {str(e)}")
+        try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
         return ChatbotResponse(
-                answer=f"RAG 생성 실패. DB초기화를 재시도합니다. : {str(e)}",
+                answer=f"RAG 참조 실패. VectorDB를 다시 생성했습니다. 다시 질문해주세요 : {str(e)}",
                 references=None
             )
         
