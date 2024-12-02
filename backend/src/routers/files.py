@@ -6,7 +6,7 @@ import logging
 from config import BASE_DIR, DB_PATH, UPLOAD_PATH
 import os
 from rag_utils.embedding import Embedder
-from rag_utils.init_rag import try_init_vectorDB_from_uploads
+from rag_utils.init_rag import try_init_vectorDB_from_uploads, remove_vectorDB
 from web_utils.file_manager import get_all_pdfs
 
 router = APIRouter()  # APIRouter 생성
@@ -44,9 +44,9 @@ async def loadfile_test(directory: str = root_upload_path):
 ## try catch 등의 명시적 핸들링을 작성하여 존재하지 않는 파일을 삭제하려고 시도해도 핸들링되거나,
 ## def (동기함수) 로 재구현해서 오류를 해결해야함.
 
-
+# 파일 삭제함수는 Race Condition 을 피하기 위하여, def 동기함수로 선언
 @router.delete("/files")
-async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
+def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
     logger.info(f"Received data to delete: {ids}")
 
     # ids에서 불필요한 문자 제거 후 리스트로 변환
@@ -66,6 +66,7 @@ async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
             logger.warning(f"File does not exist or is not a file: {file_to_delete}")
     
     # 파일 삭제 시, 나머지 파일을 재 임베딩 시도
+    remove_vectorDB(db_path=DB_PATH)
     try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
 
     return {"message": "Files deletion completed", "deleted_files": ids}

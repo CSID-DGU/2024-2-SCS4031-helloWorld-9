@@ -6,6 +6,8 @@ from rag_utils.embedding import Embedder  # VectorDB 초기화에 필요
 from rag_utils.retrieval import Retriever  # RAG 시스템
 from pathlib import Path
 import time
+import os
+import shutil
 
 logger = logging.getLogger("init_vectorDB")
 logging.basicConfig(level=logging.INFO,format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",)
@@ -32,3 +34,16 @@ def try_init_vectorDB_from_uploads(db_path,upload_path):
         retriev_gen_error = e
         responser = None
 
+
+
+
+def remove_vectorDB(db_path):
+    # 벡터 DB 초기화: 기존 DB 삭제
+    try:
+        if os.path.exists(db_path):
+            shutil.rmtree(db_path)
+            print(f"Deleted VectorDB at {db_path}")
+        else:
+            print(f"No VectorDB found at {db_path}")
+    except Exception as e:
+        print(f"Failed to delete VectorDB: {e}")
