@@ -27,12 +27,13 @@ Answer in Korean.
 #Answer:"""
 )
 
-class Retriev_Gen:
+class Retriever:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.vectorstore = None
         self.chain = None
         self.update_docs()
+        self.error=""
     
     def get_response(self, question):
         return self.chain.invoke(question)
