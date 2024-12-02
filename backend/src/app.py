@@ -1,6 +1,6 @@
 
 from fastapi import FastAPI, Request
-from routers import files, info, upload, chatbot, route_test  # 라우터 모듈 임포트
+from routers import files, info, upload, chatbot, route_test, graphview_router  # 라우터 모듈 임포트
 import logging
 
 app = FastAPI(debug=True)
@@ -11,7 +11,7 @@ app.include_router(info.router, prefix="/api/fileserver", tags=["Info"])
 app.include_router(upload.router, prefix="/api/fileserver", tags=["Upload"])
 app.include_router(chatbot.router, prefix="/api/chatbot", tags=["chatbot"])
 app.include_router(route_test.router, prefix="/api/route_test", tags=["route_test"])
-
+app.include_router(graphview_router.graphview_router, prefix="/api/graphview", tags=["GraphView"])
 # 전역 로그 제어
 # level=logging.INFO -> logger.info 출력
 # level=loggin.DEBUG -> logger.info, logger.debug 둘다 출력
