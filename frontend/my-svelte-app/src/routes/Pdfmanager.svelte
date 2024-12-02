@@ -26,8 +26,11 @@
   
   }
 
-  // SSE 연결 설정
-  onMount(() => {
+  function connectSSE() {
+    if (eventSource) {
+      eventSource.close(); // 기존 연결 해제
+    }
+
     eventSource = new EventSource("/api/sse/sse_test");
 
     eventSource.onmessage = (event) => {
@@ -37,9 +40,18 @@
 
     eventSource.onerror = (error) => {
       console.error("SSE Error:", error);
-      statusMessage = "Error occurred in SSE connection.";
-      eventSource.close(); // 오류 발생 시 연결 해제
+      statusMessage.set("SSE 연결이 끊겼습니다. 재연결 중...");
+
+      // 연결 해제 및 5초 후 재연결 시도
+      eventSource.close();
+      setTimeout(() => {
+        connectSSE();
+      }, 5000);
     };
+  }
+
+  onMount(() => {
+    connectSSE();
 
     return () => {
       if (eventSource) {
@@ -49,14 +61,12 @@
     };
   });
 
-  // 언마운트 시 리소스 정리
   onDestroy(() => {
     if (eventSource) {
       eventSource.close();
       console.log("SSE connection destroyed.");
     }
   });
-
   $: data = [];
   $: drive = {};
 

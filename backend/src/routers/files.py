@@ -8,6 +8,8 @@ import os
 from rag_utils.embedding import Embedder
 from rag_utils.init_rag import try_init_vectorDB_from_uploads, remove_vectorDB
 from web_utils.file_manager import get_all_pdfs
+from routers.sse import sse_message
+from fastapi import BackgroundTasks
 
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ embedder = Embedder(db_path=DB_PATH)
 
 
 @router.get("/files")
-async def loadfile_test(directory: str = root_upload_path):
+def loadfile_test(directory: str = root_upload_path, background_tasks: BackgroundTasks = None):
     """
     서버의 실제 파일 및 폴더 정보를 반환
     """
@@ -46,7 +48,7 @@ async def loadfile_test(directory: str = root_upload_path):
 
 # 파일 삭제함수는 Race Condition 을 피하기 위하여, def 동기함수로 선언
 @router.delete("/files")
-def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
+def delete_uploaded_file(ids: str = Body(...), background_tasks: BackgroundTasks = None):
     logger.info(f"Received data to delete: {ids}")
 
     # ids에서 불필요한 문자 제거 후 리스트로 변환
@@ -69,4 +71,7 @@ def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
     remove_vectorDB(db_path=DB_PATH)
     try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
 
+    background_tasks.add_task(sse_message, f"파일 삭제됨 {ids}")
+
     return {"message": "Files deletion completed", "deleted_files": ids}
+

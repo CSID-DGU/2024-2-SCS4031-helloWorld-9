@@ -4,6 +4,8 @@ import shutil
 import logging
 from rag_utils.embedding import Embedder
 from config import DB_PATH, BASE_DIR
+from routers.sse import sse_message
+from fastapi import BackgroundTasks
 
 router = APIRouter()  # APIRouter 생성
 
@@ -26,7 +28,7 @@ def embed_pdf(user_uploaded_file_path):
 
 
 @router.post("/upload")
-async def upload_test(file: UploadFile = File(...), id: str = "/"):
+async def upload_test(file: UploadFile = File(...), id: str = "/", background_tasks: BackgroundTasks = None):
     """
     업로드된 파일을 저장
     """
@@ -38,5 +40,7 @@ async def upload_test(file: UploadFile = File(...), id: str = "/"):
         shutil.copyfileobj(file.file, buffer)
 
     embed_pdf(save_path)
+    logger.info("업로드 sse 트리거")
+    background_tasks.add_task(sse_message, f"파일 업로드 됨 : {root_upload_path}")
 
     return {"filename": file.filename, "saved_to": save_path}
