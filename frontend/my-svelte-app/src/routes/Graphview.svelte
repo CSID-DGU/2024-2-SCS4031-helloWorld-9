@@ -6,11 +6,19 @@
     // Store for dynamic graph data
     let graphData = writable({ nodes: [], links: [] });
     let userQuestion = ""; // For user input
+    let loading = false;   // 로딩 상태 관리 변수
+    let loadingTime = 0;   // 로딩 시간 (초 단위)
+    let timer; // Timer reference
     
     // Function to fetch data from backend
     async function fetchData() {
         try {
             console.log("그래프 뷰 요청...")
+            loading = true;  // 로딩 시작
+            // Start timer
+            timer = setInterval(() => {
+                loadingTime++;
+            }, 1000);
             const response = await fetch("/api/graphview/retrieve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -26,7 +34,10 @@
             console.log(data);
             } catch (error) {
             console.error("데이터 요청 실패:", error);
-         }
+         }finally {
+            loading = false; // 로딩 종료
+            clearInterval(timer); // Timer 정리
+        }
         
     }
     
@@ -117,7 +128,11 @@
         <input type="text" bind:value={userQuestion} placeholder="Enter your question..." />
         <button on:click={fetchData}>Submit</button>
     </div>
-    
+
+    {#if loading}
+    <div class="loading-message">그래프뷰 생성중...{loadingTime}</div>
+    {/if}
+        
     <div class="graph-container">
         <svg id="graph"></svg>
     </div>
