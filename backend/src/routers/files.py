@@ -9,7 +9,7 @@ from rag_utils.embedding import Embedder
 from rag_utils.init_rag import try_init_vectorDB_from_uploads, remove_vectorDB
 from web_utils.file_manager import get_all_pdfs
 from routers.sse import sse_message
-from fastapi import BackgroundTasks
+import asyncio
 
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ embedder = Embedder(db_path=DB_PATH)
 
 
 @router.get("/files")
-def loadfile_test(directory: str = root_upload_path, background_tasks: BackgroundTasks = None):
+def loadfile_test(directory: str = root_upload_path):
     """
     서버의 실제 파일 및 폴더 정보를 반환
     """
@@ -48,7 +48,10 @@ def loadfile_test(directory: str = root_upload_path, background_tasks: Backgroun
 
 # 파일 삭제함수는 Race Condition 을 피하기 위하여, def 동기함수로 선언
 @router.delete("/files")
-def delete_uploaded_file(ids: str = Body(...), background_tasks: BackgroundTasks = None):
+def delete_uploaded_file(ids: str = Body(...)):
+
+    asyncio.run(sse_message(f"파일을 삭제중입니다... {ids}"))
+
     logger.info(f"Received data to delete: {ids}")
 
     # ids에서 불필요한 문자 제거 후 리스트로 변환
@@ -64,14 +67,13 @@ def delete_uploaded_file(ids: str = Body(...), background_tasks: BackgroundTasks
         if os.path.exists(file_to_delete) and os.path.isfile(file_to_delete):
             os.remove(file_to_delete)  # 파일 삭제
             logger.info(f"Deleted file: {file_to_delete}")
+            asyncio.run(sse_message(f"파일 삭제됨 : {ids}"))
         else:
             logger.warning(f"File does not exist or is not a file: {file_to_delete}")
     
     # 파일 삭제 시, 나머지 파일을 재 임베딩 시도
     remove_vectorDB(db_path=DB_PATH)
     try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
-
-    background_tasks.add_task(sse_message, f"파일 삭제됨 {ids}")
 
     return {"message": "Files deletion completed", "deleted_files": ids}
 

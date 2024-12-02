@@ -87,7 +87,7 @@
         statusMessage.set(`선택 : ${id}`);
     });
     api.on("create-file", ({ parent, file }) => {
-      statusMessage.set(`${file.name} 업로드`);
+      statusMessage.set(`${file.name} 업로드 중...`);
       });
   }
 
