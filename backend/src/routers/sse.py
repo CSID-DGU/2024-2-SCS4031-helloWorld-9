@@ -7,15 +7,18 @@ router = APIRouter()
 logger = logging.getLogger("chatbot")
 logging.basicConfig(level=logging.INFO,format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",)
 
+# 비동기 Queue 생성 (공유 이벤트 큐)
+event_queue = asyncio.Queue()
+
 async def sse_stream():
     """SSE 스트림 생성"""
-    for i in range(10):
-        await asyncio.sleep(1)  # 1초 대기
-        yield f"data: Message {i} from server\n\n"  # SSE 데이터 형식
-    yield "data: Stream closed\n\n"
+    while True:
+        # Queue에서 이벤트 가져오기
+        event = await event_queue.get()
+        yield f"data: {event}\n\n"
 
 @router.get("/sse_test")
 async def sse_endpoint():
-    logger.info("sse!")
+    logger.info("SSE Connection Established")
     """SSE 엔드포인트."""
     return EventSourceResponse(sse_stream())
