@@ -10,7 +10,8 @@
     // Function to fetch data from backend
     async function fetchData() {
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/graphview/retrieve/", {
+            console.log("그래프 뷰 요청...")
+            const response = await fetch("/api/graphview/retrieve", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ question: userQuestion }),
@@ -20,6 +21,8 @@
             }
 
             const data = await response.json();  // JSON 파싱
+            // graphData를 업데이트
+            graphData.set(data);
             console.log(data);
             } catch (error) {
             console.error("데이터 요청 실패:", error);
@@ -30,8 +33,8 @@
     // Graph visualization logic
     onMount(() => {
         let svg, simulation;
-        const width = 800;
-        const height = 600;
+        let width = window.innerWidth * 0.8; // 브라우저 너비의 80%
+        let height = window.innerHeight * 0.8; // 브라우저 높이의 80%
     
         // Subscribe to changes in graphData
         graphData.subscribe(data => {

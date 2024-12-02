@@ -11,7 +11,7 @@ app = FastAPI()
 graphview_router = APIRouter()
 
 # Route to handle retrieving answers
-@graphview_router.post("/retrieve/")
+@graphview_router.post("/retrieve")
 async def retrieve_keywords(request: QuestionRequest):
     question = request.question
     
