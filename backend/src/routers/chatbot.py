@@ -5,10 +5,35 @@ from typing import List, Optional
 import logging
 from rag_utils.embedding import Embedder  # VectorDB 초기화에 필요
 from rag_utils.retrieval import Retriev_Gen  # RAG 시스템
-from config import DB_PATH
+from config import DB_PATH, UPLOAD_PATH
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("chatbot")
+logging.basicConfig(level=logging.INFO,format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",)
+
+chatbot_db_path = DB_PATH
+chatbot_upload_path = UPLOAD_PATH
+
+# 이미 업로드된 PDF 파일 임베딩
+try:
+    logger.info(f"Chatbot initializing...")
+    # embedder = Embedder(db_path=chatbot_db_path)
+    # pdf_files = [file for file in chatbot_upload_path.rglob("*.pdf") if file.is_file()]
+
+    # if not pdf_files:
+    #     logger.info("No PDF files found.")
+    #     # PDF 파일이 없는 경우 추가 작업
+    # else:
+    #     logger.info(f"Found {len(pdf_files)} PDF files:")
+    #     for pdf in pdf_files:
+    #         logger.info(f"pdf 파일 임베딩 시작 : {pdf}")
+    #         embedder.add_docs(pdf)
+    #         logger.info(f"pdf 파일 임베딩 완료 : {pdf}")
+
+except Exception as e:
+    logger.error(f"Failed to gen embedder: {str(e)}")
+    retriev_gen_error = e
+    responser = None
 
 # 전역 변수로 RAG 시스템 초기화
 try:
@@ -27,6 +52,7 @@ class ChatbotResponse(BaseModel):
 
 @router.post("/get-answer", response_model=ChatbotResponse)
 async def get_answer(request: ChatbotRequest):
+    logger.info("챗봇 대답 생성 시작...")
     try:
         if responser is None:
             return ChatbotResponse(
