@@ -3,9 +3,10 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 from datetime import datetime
 import logging
-from config import BASE_DIR, DB_PATH
+from config import BASE_DIR, DB_PATH, UPLOAD_PATH
 import os
 from rag_utils.embedding import Embedder
+from web_utils.file_manager import get_all_pdfs
 
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ async def loadfile_test(directory: str = root_upload_path):
             "date": datetime.fromtimestamp(item.stat().st_mtime).isoformat(timespec="seconds"),
             "type": "folder" if item.is_dir() else "file",
         })
+    logger.info(get_all_pdfs(UPLOAD_PATH))
     return JSONResponse(content=files)
 
 # Todo : 업로드된 파일 삭제
