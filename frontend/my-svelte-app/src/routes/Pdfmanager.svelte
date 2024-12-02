@@ -21,7 +21,7 @@
     
     api.setNext(restProvider);
   
-    statusMessage.set('파일 매니저 로드 완료');
+    // statusMessage.set('파일 매니저 로드 완료');
   
   }
   
@@ -33,6 +33,7 @@
   .then(([files, info]) => {
     data = files;
     drive = info;
+    statusMessage.set(`Loaded ${files.length} files.`);
   })
   .catch((error) => {
     statusMessage.set(`Error loading data: ${error.message || error}`);
