@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { Filemanager } from "wx-svelte-filemanager";
   import { Willow } from "wx-svelte-filemanager";
   import * as pdfjsLib from 'pdfjs-dist/build/pdf';
@@ -8,6 +8,7 @@
   
   
   let api;
+  let eventSource;
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
   let rawData = [];
@@ -24,7 +25,37 @@
     // statusMessage.set('파일 매니저 로드 완료');
   
   }
-  
+
+  // SSE 연결 설정
+  onMount(() => {
+    eventSource = new EventSource("/api/sse/sse_test");
+
+    eventSource.onmessage = (event) => {
+      console.log("SSE Message:", event.data);
+      statusMessage.set(event.data); // 메시지 업데이트
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE Error:", error);
+      statusMessage = "Error occurred in SSE connection.";
+      eventSource.close(); // 오류 발생 시 연결 해제
+    };
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        console.log("SSE connection closed.");
+      }
+    };
+  });
+
+  // 언마운트 시 리소스 정리
+  onDestroy(() => {
+    if (eventSource) {
+      eventSource.close();
+      console.log("SSE connection destroyed.");
+    }
+  });
 
   $: data = [];
   $: drive = {};
