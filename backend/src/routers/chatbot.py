@@ -22,7 +22,7 @@ class ChatbotResponse(BaseModel):
 
 
 # 이미 업로드된 PDF 파일 임베딩
-try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
+# try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
 
 @router.post("/get-answer", response_model=ChatbotResponse)
 async def get_answer(request: ChatbotRequest):

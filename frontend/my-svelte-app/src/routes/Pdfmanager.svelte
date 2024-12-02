@@ -22,45 +22,31 @@
     api.setNext(restProvider);
   
     statusMessage.set('파일 매니저 로드 완료');
-    
-    // 파일 업로드 처리
-    api.on("upload-pdf", async ({ id: targetFolder }) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.multiple = true;
-      input.accept = '.pdf';
-      
-      input.onchange = async (event) => {
-        const files = event.target.files;
-        await processPdfFiles(files, targetFolder);
-      };
-      
-      input.click();
-    });
+  
   }
-
-  // $: {
-  //   fetch("/api/files")
-  //     .then((data) => data.json())
-  //     .then((data) => (rawData = data))
-  //     .then((data)=>{
-  //       console.log(data);
-  //       statusMessage.set(data.files);
-  //     })
-  // }
-
   
 
   $: data = [];
   $: drive = {};
 
-  Promise.all([restProvider.loadFiles(), restProvider.loadInfo()]).then(([files, info]) => {
+  Promise.all([restProvider.loadFiles(), restProvider.loadInfo()])
+  .then(([files, info]) => {
     data = files;
     drive = info;
+  })
+  .catch((error) => {
+    statusMessage.set(`Error loading data: ${error.message || error}`);
   });
 
-  $: {
-    console.log("Updated drive:", drive);
+
+  $: if (api) {
+    api.on("select-file", ({ id }) => {
+      if(id!=null)
+        statusMessage.set(`선택 : ${id}`);
+    });
+    api.on("create-file", ({ parent, file }) => {
+      statusMessage.set(`${file.name} 업로드`);
+      });
   }
 
   

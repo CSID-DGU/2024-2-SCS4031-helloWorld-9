@@ -9,7 +9,7 @@ app = FastAPI(debug=False)
 
 # HTTP 요청 로그 미들웨어 추가
 # http_debug=True 로 설정하는 경우, 디버그 메세지로 web request 를 확인 가능
-log_middleware(app, http_debug=True)
+log_middleware(app, http_debug=False)
 
 # 라우터 등록
 app.include_router(files.router, prefix="/api/fileserver", tags=["Files"])
