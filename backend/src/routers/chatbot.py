@@ -32,7 +32,7 @@ async def get_answer(request: ChatbotRequest):
     except Exception as e:
         logger.error(f"Retriever gen Failed : {str(e)}")
         return ChatbotResponse(
-                answer=f"Retriever gen Failed : {str(e)}",
+                answer=f"RAG 생성 실패. DB초기화를 재시도합니다. : {str(e)}",
                 references=None
             )
         
