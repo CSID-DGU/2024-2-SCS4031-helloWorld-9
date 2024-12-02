@@ -67,7 +67,7 @@
                 .enter().append("line")
                 .attr("class", "link")
                 .attr("stroke", "#999")
-                .attr("stroke-width", d => Math.sqrt(d.value));
+                .attr("stroke-width", d => Math.max(Math.sqrt(d.value), 0.2));
     
             // Draw nodes
             const node = svg.selectAll(".node")
