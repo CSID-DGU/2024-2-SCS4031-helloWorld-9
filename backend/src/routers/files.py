@@ -3,9 +3,13 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 from datetime import datetime
 import logging
-from config import BASE_DIR, DB_PATH
+from config import BASE_DIR, DB_PATH, UPLOAD_PATH
 import os
 from rag_utils.embedding import Embedder
+from rag_utils.init_rag import try_init_vectorDB_from_uploads, remove_vectorDB
+from web_utils.file_manager import get_all_pdfs
+from routers.sse import sse_message
+import asyncio
 
 router = APIRouter()  # APIRouter 생성
 logger = logging.getLogger(__name__)
@@ -14,25 +18,8 @@ root_upload_path = f"{BASE_DIR}/uploads"
 embedder = Embedder(db_path=DB_PATH)
 
 
-# Todo : vectorDB 삭제
-# 동기로 작동해야하는 부분을 def 로 구현
-def vector_db_restore():
-    # Todo : vectorDB 제거 후, 나머지 pdf 다시 임베딩
-
-
-    # pdf_file 을 모두 읽어서 vectorDB 복구
-    pdf_files = [f for f in os.listdir(root_upload_path) if f.endswith('.pdf')]
-    for pdf_file in pdf_files:
-        pdf_path = os.path.join(root_upload_path, pdf_file)
-        logger.info(f"start embedding : {pdf_path}")
-        # embedding 수행
-        embedder.add_docs(pdf_path)
-        logger.info(f"embeding complete : {pdf_path}")
-    logger.info(f"VectorDB restored after file delete : {pdf_path}")
-
-
 @router.get("/files")
-async def loadfile_test(directory: str = root_upload_path):
+def loadfile_test(directory: str = root_upload_path):
     """
     서버의 실제 파일 및 폴더 정보를 반환
     """
@@ -51,16 +38,20 @@ async def loadfile_test(directory: str = root_upload_path):
             "date": datetime.fromtimestamp(item.stat().st_mtime).isoformat(timespec="seconds"),
             "type": "folder" if item.is_dir() else "file",
         })
+    logger.info(get_all_pdfs(UPLOAD_PATH))
     return JSONResponse(content=files)
 
 # Todo : 업로드된 파일 삭제
 # async def 를 사용하니, 비동기로 인해 race condition 이 유발되는 듯 함. (존재하지 않는 파일을 삭제하려고 시도하여, 프로그램이 죽음)
 ## try catch 등의 명시적 핸들링을 작성하여 존재하지 않는 파일을 삭제하려고 시도해도 핸들링되거나,
 ## def (동기함수) 로 재구현해서 오류를 해결해야함.
-'''
 
+# 파일 삭제함수는 Race Condition 을 피하기 위하여, def 동기함수로 선언
 @router.delete("/files")
-async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
+def delete_uploaded_file(ids: str = Body(...)):
+
+    asyncio.run(sse_message(f"파일을 삭제중입니다... {ids}"))
+
     logger.info(f"Received data to delete: {ids}")
 
     # ids에서 불필요한 문자 제거 후 리스트로 변환
@@ -76,10 +67,13 @@ async def delete_uploaded_file(ids: str = Body(...)):  # str 타입으로 받음
         if os.path.exists(file_to_delete) and os.path.isfile(file_to_delete):
             os.remove(file_to_delete)  # 파일 삭제
             logger.info(f"Deleted file: {file_to_delete}")
+            asyncio.run(sse_message(f"파일 삭제됨 : {ids}"))
         else:
             logger.warning(f"File does not exist or is not a file: {file_to_delete}")
-
-        vector_db_restore()
+    
+    # 파일 삭제 시, 나머지 파일을 재 임베딩 시도
+    remove_vectorDB(db_path=DB_PATH)
+    try_init_vectorDB_from_uploads(db_path=DB_PATH,upload_path=UPLOAD_PATH)
 
     return {"message": "Files deletion completed", "deleted_files": ids}
-'''
+

@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { Filemanager } from "wx-svelte-filemanager";
   import { Willow } from "wx-svelte-filemanager";
   import * as pdfjsLib from 'pdfjs-dist/build/pdf';
@@ -8,6 +8,7 @@
   
   
   let api;
+  let eventSource;
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
   let rawData = [];
@@ -21,46 +22,73 @@
     
     api.setNext(restProvider);
   
-    statusMessage.set('파일 매니저 로드 완료');
-    
-    // 파일 업로드 처리
-    api.on("upload-pdf", async ({ id: targetFolder }) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.multiple = true;
-      input.accept = '.pdf';
-      
-      input.onchange = async (event) => {
-        const files = event.target.files;
-        await processPdfFiles(files, targetFolder);
-      };
-      
-      input.click();
-    });
+    // statusMessage.set('파일 매니저 로드 완료');
+  
   }
 
-  // $: {
-  //   fetch("/api/files")
-  //     .then((data) => data.json())
-  //     .then((data) => (rawData = data))
-  //     .then((data)=>{
-  //       console.log(data);
-  //       statusMessage.set(data.files);
-  //     })
-  // }
+  function connectSSE() {
+    if (eventSource) {
+      eventSource.close(); // 기존 연결 해제
+    }
 
-  
+    eventSource = new EventSource("/api/sse/sse_test");
 
+    eventSource.onmessage = (event) => {
+      console.log("SSE Message:", event.data);
+      statusMessage.set(event.data); // 메시지 업데이트
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE Error:", error);
+      statusMessage.set("SSE 연결이 끊겼습니다. 재연결 중...");
+
+      // 연결 해제 및 5초 후 재연결 시도
+      eventSource.close();
+      setTimeout(() => {
+        connectSSE();
+      }, 5000);
+    };
+  }
+
+  onMount(() => {
+    connectSSE();
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+        console.log("SSE connection closed.");
+      }
+    };
+  });
+
+  onDestroy(() => {
+    if (eventSource) {
+      eventSource.close();
+      console.log("SSE connection destroyed.");
+    }
+  });
   $: data = [];
   $: drive = {};
 
-  Promise.all([restProvider.loadFiles(), restProvider.loadInfo()]).then(([files, info]) => {
+  Promise.all([restProvider.loadFiles(), restProvider.loadInfo()])
+  .then(([files, info]) => {
     data = files;
     drive = info;
+    statusMessage.set(`Loaded ${files.length} files.`);
+  })
+  .catch((error) => {
+    statusMessage.set(`Error loading data: ${error.message || error}`);
   });
 
-  $: {
-    console.log("Updated drive:", drive);
+
+  $: if (api) {
+    api.on("select-file", ({ id }) => {
+      if(id!=null)
+        statusMessage.set(`선택 : ${id}`);
+    });
+    api.on("create-file", ({ parent, file }) => {
+      statusMessage.set(`${file.name} 업로드 중...`);
+      });
   }
 
   

@@ -2,8 +2,14 @@
 from fastapi import FastAPI, Request
 from routers import files, info, upload, chatbot, route_test, graphview_router  # 라우터 모듈 임포트
 import logging
+import web_utils.log_init
+from web_utils.log_init import log_middleware
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=False)
+
+# HTTP 요청 로그 미들웨어 추가
+# http_debug=True 로 설정하는 경우, 디버그 메세지로 web request 를 확인 가능
+log_middleware(app, http_debug=False)
 
 # 라우터 등록
 app.include_router(files.router, prefix="/api/fileserver", tags=["Files"])
@@ -36,7 +42,6 @@ async def log_request(request: Request, call_next):
     # 요청을 처리하고, 응답을 반환
     response = await call_next(request)
     return response
-
 
 if __name__ == "__main__":
     import uvicorn
