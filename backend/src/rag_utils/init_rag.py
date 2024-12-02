@@ -8,6 +8,8 @@ from pathlib import Path
 import time
 import os
 import shutil
+from routers.sse import sse_message
+import asyncio
 
 logger = logging.getLogger("init_vectorDB")
 logging.basicConfig(level=logging.INFO,format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",)
@@ -26,9 +28,12 @@ def try_init_vectorDB_from_uploads(db_path,upload_path):
             logger.info(f"Found {len(pdf_files)} PDF files:")
             for pdf in pdf_files:
                 logger.info(f"pdf 파일 임베딩 시작 : {pdf}")
+                asyncio.run(sse_message(f"파일 임베딩 중입니다... : {pdf}"))
                 embedder.add_docs(pdf)
                 logger.info(f"pdf 파일 임베딩 완료 : {pdf}")
+                asyncio.run(sse_message(f"파일 임베딩을 완료하였습니다 : {pdf}"))
                 time.sleep(1) # 너무 빠른 재시도로 openai api http request 가 거절되는 문제 해결
+            asyncio.run(sse_message(f"모든 파일을 임베딩을 완료하였습니다. 챗봇이 준비되었습니다."))
     except Exception as e:
         logger.error(f"Failed to gen embedder: {str(e)}")
         retriev_gen_error = e
