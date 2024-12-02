@@ -10,6 +10,7 @@
   <nav>
     <a href="#/pdfmanager">PDF 관리</a>
     <a href="#/chatbot">챗봇</a>
+    <a href="#/graphview">그래프뷰</a>
   </nav>
 </div>
 
