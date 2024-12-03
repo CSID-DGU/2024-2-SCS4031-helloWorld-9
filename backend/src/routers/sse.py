@@ -23,6 +23,7 @@ async def sse_endpoint():
     """SSE 엔드포인트."""
     return EventSourceResponse(sse_stream())
 
+# sse_message
 async def sse_message(msg):
     logger.info(f"SSE 메세지 : {msg}")
     await event_queue.put(msg)
