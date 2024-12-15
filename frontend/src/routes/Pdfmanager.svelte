@@ -126,4 +126,13 @@
       border-radius: 4px;
       font-size: 14px;
     }
+
+    :global(div[data-id="add-file"]) {
+      display: none !important;
+    }
+    :global(div[data-id="add-folder"]) {
+      display: none !important;
+    }
+
+    
   </style>

@@ -4,6 +4,7 @@ from routers import files, info, upload, chatbot, route_test, graphview_router,s
 import logging
 import web_utils.log_init
 from web_utils.log_init import log_middleware
+import os
 
 app = FastAPI(debug=False)
 
@@ -22,4 +23,6 @@ app.include_router(graphview_router.graphview_router, prefix="/api/graphview", t
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+    env_port = int(os.getenv("PORT", 8000))
+    print(os.getenv("OPENAI_API_KEY"))
+    uvicorn.run("app:app", host="0.0.0.0", port=env_port, reload=True)
