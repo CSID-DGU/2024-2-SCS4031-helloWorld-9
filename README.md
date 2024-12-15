@@ -1,23 +1,22 @@
 # 2024-2-SCS4031-helloWorld-9
 RAG를 활용한 보험 문서 챗봇 만들기 프로젝트
 
-# 실행 방법
-### backend 구동
-chatbot 서버를 실행시킵니다.
-- python 이 설치되어있어야 함.
-- 의존성 충돌을 피하기 위하여 가상환경(anaconda, venv) 등을 사용하는 것을 권장함.
+# 실행 방법 안내 
+## openai api key 설정
+openai api key 를 발급받아서 입력해야함.
+.env.example 파일을 수정하여 실제 키를 입력하고, 파일 이름을 .env 로 변경할 것.
+
+## 실행 명령어
+*docker 가 설치되어있어야함.
 ```
-pip install -r backend/requirements.txt
-python backend/app.py
+docker compose up
 ```
-### frontend 구동
-chatbot 브라우저 앱을 실행시킵니다.
-- nodejs 가 설치되어있어야함.
-```
-npm install --prefix /frontend/chatbot-app
-npm run dev
-```
-이후, 콘솔 터미널에 출력되는 주소로 브라우저를 통해 접속합니다.
+
+이후, `localhost:3000` 으로 접속
+
+## 파일 업로드
+Menu - PDF 관리 탭에서, pdf 파일을 브라우저로 드래그하거나 Add New 클릭하여 파일을 추가.
+잠시 기다린 후, Menu - 챗봇 에서 질문하면 RAG 시스템 작동.
 
 ## Commit Convention
 -   feat : 새로운 기능 추가
