@@ -24,4 +24,5 @@ app.include_router(graphview_router.graphview_router, prefix="/api/graphview", t
 if __name__ == "__main__":
     import uvicorn
     env_port = int(os.getenv("PORT", 8000))
+    print(os.getenv("OPENAI_API_KEY"))
     uvicorn.run("app:app", host="0.0.0.0", port=env_port, reload=True)
